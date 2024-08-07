@@ -6,16 +6,15 @@
 rm(list = ls())
 #install.packages("pacman")
 pacman::p_load(openxlsx, data.table)
-dt_gus = read.xlsx("pl_mig_2023_00_2g.xlsx")
+dt_gus = read.xlsx("./Migration_PL/pl_mig_2023_00_2g.xlsx")
 dt_gus = as.data.table(dt_gus)
-
+head(dt_gus)
 # set colnames, select data
 dt_gus = dt_gus[2:nrow(dt_gus), 5:(ncol(dt_gus)-2)]
 setnames(dt_gus, as.character(dt_gus[1,]))
 dt_gus = dt_gus[3:(nrow(dt_gus)-3)]
 tail(dt_gus) 
 setnames(dt_gus, old = names(dt_gus)[2], new = "gmina_dest")
-
 # turn to long
 dt_gus_long = melt(dt_gus, id.vars = c("Kod", "gmina_dest"))
 
@@ -28,7 +27,7 @@ dt_gus_long[, no := as.numeric(no)]
 dt_gus_long = dt_gus_long[!is.na(no)]
 gm_kod = unique(dt_gus_long[, .(Kod, gmina_dest)])
 dt_gus_long = dt_gus_long[no!=0]
-tail(dt_gus_long)
+head(dt_gus_long)
 
 # suma kontrolna
 dt_gus_long[, .(sum(no))]
@@ -41,5 +40,16 @@ dt_gus_long = merge(dt_gus_long, gm_kod, by = "kod_origin")
 # change Kod to kod_dest
 colnames(dt_gus_long)[2] = "kod_dest"
 
+# change kod with '4' or '5' as the last digit to '3'
+replace_last_digit <- function(x) {
+  sub("[45]$", "3", x)
+}
+
+# Apply the function to the 'kod' column
+dt_gus_long[, kod_origin := replace_last_digit(kod_origin)]
+dt_gus_long[, kod_dest := replace_last_digit(kod_dest)]
+
+# How many kod_dest ?
+length(unique(dt_gus_long$kod_dest))
 # Save clean mig_gmina
-fwrite(dt_gus_long, "mig_gmina.csv")
+fwrite(dt_gus_long, "./Migration_PL/mig_gmina.csv")

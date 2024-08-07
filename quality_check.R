@@ -206,3 +206,4 @@ dt_pop_agg[, .(sum(no))]
 nrow(unique(dt_pop_agg[urban_dest == "urban", .(id_dest_new)]))
 nrow(unique(dt_pop_agg[urban_dest == "rural", .(id_dest_new)]))
 # 944 urban and 2141 rural
+# why more? Because we distinguish in rural-urban between urban and rural

@@ -1,11 +1,11 @@
 rm(list=ls())
 #install.packages("pacman")
 pacman::p_load(data.table, sf)
-dt = fread("mig_gmina.csv")
-gmina_spatial = st_read("./gminy/gminy.shp")
+dt = fread("./Migration_PL/mig_gmina.csv")
+#gmina_spatial = st_read("./gminy/gminy.shp")
 #plot(st_geometry(gmina_spatial))
 
-gm_cechy = fread("powierzchnia_i_ludnosc_w_przekroju_terytorialnym_w_2022_roku_tablice.csv")
+gm_cechy = fread("./Migration_PL/powierzchnia_i_ludnosc_w_przekroju_terytorialnym_w_2022_roku_tablice.csv")
 # V1 - id, V6 - populacja, V8 - gęstość
 gm_cechy = gm_cechy[, .(V1, V6, V8)]
 gm_cechy = gm_cechy[V1 != ""]
@@ -35,5 +35,5 @@ head(dt)
 dt[, .(sum(no))]
 
 # save
-fwrite(dt, "mig_gmina_ext.csv")
+fwrite(dt, "Migration_PL/mig_gmina_ext.csv")
 # mc cp mig_gmina_ext.csv s3/wiktorze/MF/
