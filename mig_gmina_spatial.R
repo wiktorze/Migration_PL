@@ -67,13 +67,16 @@ labs(fill = "Origin")
 dev.off()
 
 pdf("./Migration_PL/mig_gmina_distance.pdf")
-ggplot(dt_merged, aes(x = distance, y = no)) +
-  geom_point(color = "blue") +  # Scatter plot with blue points
-  geom_smooth(method = "lm", se = FALSE, color = "red") +  # Fitted line in red without confidence interval
+# add pop_dest to the plot by resizing the points
+ggplot(dt_merged, aes(x = distance, y = no, color = urban_dest)) +
+  geom_point(alpha = 0.7) +  # Scatter plot with semi-transparent points
+  geom_smooth(method = "lm", se = FALSE, color = "red") +  # Fitted line in red
   xlab("Distance") +  # Customize x-axis label
   ylab("Number of Migrants") +  # Customize y-axis label
-  ggtitle("Scatter Plot with Fitted Line")  # Add a title to the plot
+  ggtitle("Scatter Plot with Fitted Line") +  # Add a title to the plot
+  theme(legend.position = "right")  # Ensure the legend for color is visible
 dev.off()
+
 # migration and population - add coefficient number
 pdf("./Migration_PL/mig_gmina_pop.pdf")
 ggplot(dt_merged, aes(x = pop_dest, y = no_dest)) +
