@@ -1,0 +1,10 @@
+urban_dest,urban_origin,no
+rural,urban,71740
+urban-rural,urban,29545
+urban,urban,57650
+urban,rural,39119
+rural,rural,20101
+urban-rural,rural,12786
+urban,urban-rural,23467
+rural,urban-rural,15117
+urban-rural,urban-rural,11121

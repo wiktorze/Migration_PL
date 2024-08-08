@@ -26,11 +26,11 @@ head(dt_gus_long)
 dt_gus_long[, no := as.numeric(no)]
 dt_gus_long = dt_gus_long[!is.na(no)]
 gm_kod = unique(dt_gus_long[, .(Kod, gmina_dest)])
-dt_gus_long = dt_gus_long[no!=0]
 head(dt_gus_long)
 
 # suma kontrolna
 dt_gus_long[, .(sum(no))]
+max(dt_gus_long$no)
 
 # create gmina_origin
 colnames(gm_kod)[1] = "kod_origin"
@@ -53,3 +53,4 @@ dt_gus_long[, kod_dest := replace_last_digit(kod_dest)]
 length(unique(dt_gus_long$kod_dest))
 # Save clean mig_gmina
 fwrite(dt_gus_long, "./Migration_PL/mig_gmina.csv")
+max(dt_gus_long$no)

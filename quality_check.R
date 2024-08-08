@@ -3,12 +3,12 @@ rm(list=ls())
 pacman::p_load(data.table)
 
 dt = fread("./Migration_PL/mig_gmina_ext.csv")
-
+max(dt$no)
 gminy = unique(dt[,.(kod_dest, gmina_dest, pop_dest)])
 
 # suma populacji
 gminy[, .(sum(pop_dest, na.rm = T))]
-# 35,758,108 - są NA
+# 35,795,987 - są NA
 # Brak gmin miejsko-wiejskich w bazie - porozdzielane na miejskie oraz wiejskie
 # co nas zadowala wsm
 # Warszawa
@@ -93,11 +93,9 @@ dt_pop[, id_origin := ifelse(is.na(id_origin), kod_origin, id_origin)]
 
 # aggregate by id_dest, id_origin
 # Miekinia
-dt_pop[id_dest == 218035, id_dest := 218032]
-dt_pop[id_dest == 218034, id_dest := 218032]
+dt_pop[id_dest == 218033, id_dest := 218032]
 
-dt_pop[id_origin == 218035, id_origin := 218032]
-dt_pop[id_origin == 218034, id_origin := 218032]
+dt_pop[id_origin == 218033, id_origin := 218032]
 
 dt_pop[id_dest == 218032, pop_dest := 20313]
 dt_pop[id_origin == 218032, pop_origin := 20313]
@@ -106,7 +104,7 @@ dt_pop[id_dest == 218032, den_dest := 113]
 dt_pop[id_origin == 218032, den_origin := 113]
 # Miekinia end
 # Dabrowica 1002035 to 1002032
-dt_pop[id_origin == 1002035, id_origin := 1002032]
+dt_pop[id_origin == 1002033, id_origin := 1002032]
 
 dt_pop[id_origin == 1002032, pop_origin := 1808]
 
@@ -124,15 +122,16 @@ dt_pop_agg[, den_dest := as.numeric(den_dest)]
 dt_pop_agg[, pop_origin := as.numeric(pop_origin)]
 dt_pop_agg[, den_origin := as.numeric(den_origin)]
 
-dt_pop_agg[, .(sum(pop_origin))]
-
+dt_pop_agg[, .(sum(no))]
+dt_pop_agg[is.na(pop_origin)]
+dt_pop_agg[is.na(pop_dest)]
 # Eliminate rows where id_dest == id_origin
 dt_pop_agg = dt_pop_agg[id_dest != id_origin]
 
 # control sum
 gminy_ctrl = unique(dt_pop_agg[,.(id_dest, pop_dest)])
 gminy_ctrl[, .(sum(pop_dest))]
-# ponad 2 miliony populacji odzyskane - jest git!
+# 37,793,311
 
 # dzielnice Warszawy
 #for ids: 146502 8
@@ -161,7 +160,9 @@ dzielnice = c("1465028", "1465038", "1465048", "1465058", "1465068",
               "1465178", "1465188", "1465198")
 dt_pop_agg[id_dest %in% dzielnice, id_dest := 1465011]
 dt_pop_agg[id_origin %in% dzielnice, id_origin := 1465011]
-
+pop_wwa = unique(dt_pop_agg[id_dest == 1465011, .(pop_dest)])[, sum(pop_dest)]
+dt_pop_agg[id_dest == 1465011, pop_dest := pop_wwa]
+dt_pop_agg[id_origin == 1465011, pop_origin := pop_wwa]
 # aggregate again
 dt_pop_agg = dt_pop_agg[, .(no = sum(no), pop_dest = first(pop_dest), 
                     den_dest = first(den_dest),
@@ -205,5 +206,10 @@ dt_pop_agg[, .(sum(no))]
 # how many are there unique urban ids? rural ids?
 nrow(unique(dt_pop_agg[urban_dest == "urban", .(id_dest_new)]))
 nrow(unique(dt_pop_agg[urban_dest == "rural", .(id_dest_new)]))
+nrow(unique(dt_pop_agg[urban_dest == "urban-rural", .(id_dest_new)]))
 # 944 urban and 2141 rural
 # why more? Because we distinguish in rural-urban between urban and rural
+
+# origin != dest
+dt_pop_agg = dt_pop_agg[id_dest != id_origin]
+fwrite(dt_pop_agg, "./Migration_PL/mig_gmina_ext_pop.csv")
