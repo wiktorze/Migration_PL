@@ -57,6 +57,11 @@ lm(no ~ distance, data = dt_merged_100)
 dt_merged_50 = dt_merged[distance <= 50]
 lm(no ~ distance, data = dt_merged_50)
 
+# scatter plot no and distance
+ggplot(dt_merged_50, aes(x = distance, y = no)) + 
+geom_point() + 
+geom_smooth(method = "lm", se = FALSE, color = "red")
+
 # bar plot migration between urban, rural, and urban-rural
 pdf("./Migration_PL/mig_gmina_urban_rural.pdf")
 urban_rural = dt_merged[, .(no = sum(no)), by = .(urban_dest, urban_origin)]
@@ -67,7 +72,6 @@ labs(fill = "Origin")
 dev.off()
 
 pdf("./Migration_PL/mig_gmina_distance.pdf")
-# add pop_dest to the plot by resizing the points
 ggplot(dt_merged, aes(x = distance, y = no, color = urban_dest)) +
   geom_point(alpha = 0.7) +  # Scatter plot with semi-transparent points
   geom_smooth(method = "lm", se = FALSE, color = "red") +  # Fitted line in red
@@ -90,3 +94,41 @@ ggplot(dt_merged, aes(x = pop_dest, y = no_dest)) +
 dev.off()
 # Table of rural-urban migration
 fwrite(dt_merged[, .(no = sum(no)), by = .(urban_dest, urban_origin)], "./Migration_PL/mig_gmina_urban.csv")
+
+# Check top 5 cities in terms of population
+# immigration
+top_cities = dt_merged[urban_dest == 'urban', .(pop_dest = mean(pop_dest)), by = id_dest_new][order(-pop_dest)][1:5]
+
+top_imm = dt_merged[id_dest %in% top_cities$id_dest_new]
+top_imm[, .(sum(no))]
+# mig gmina-distance for top 5 cities
+pdf("./Migration_PL/mig_gmina_distance_top5.pdf")
+ggplot(top_imm, aes(x = distance, y = no, color = urban_origin)) +
+  geom_point(alpha = 0.7) +  # Scatter plot with semi-transparent points
+  geom_smooth(method = "lm", se = FALSE, color = "red") +  # Fitted line in red
+  xlab("Distance") +  # Customize x-axis label
+  ylab("Number of Migrants") +  # Customize y-axis label
+  ggtitle("Scatter Plot with Fitted Line") +  # Add a title to the plot
+  theme(legend.position = "right")  # Ensure the legend for color is visible
+dev.off()
+
+top_em = dt_merged[id_origin %in% top_cities$id_dest_new]
+top_em[, .(sum(no))]
+# emigration is larger than immigration by 5k
+top_imm[, .(sum(no))] - top_em[, .(sum(no))]
+pdf("./Migration_PL/mig_gmina_distance_top5_em.pdf")
+ggplot(top_em, aes(x = distance, y = no, color = urban_dest)) +
+  geom_point(alpha = 0.7) +  # Scatter plot with semi-transparent points
+  geom_smooth(method = "lm", se = FALSE, color = "red") +  # Fitted line in red
+  xlab("Distance") +  # Customize x-axis label
+  ylab("Number of Migrants") +  # Customize y-axis label
+  ggtitle("Scatter Plot with Fitted Line") +  # Add a title to the plot
+  theme(legend.position = "right")  # Ensure the legend for color is visible
+dev.off()
+# emigration from top 5 cities by urban-origin - barplot
+pdf("./Migration_PL/mig_gmina_urban_em_top5.pdf")
+urban_em_top5 = top_em[, .(no = sum(no)), by = .(id_origin_new, urban_dest)]
+ggplot(urban_em_top5, aes(x = id_origin_new, y = no, fill = urban_dest)) +
+  geom_bar(stat = "identity", position = "dodge") + xlab("Origin") + 
+  ylab("Number of migrants") +
+  labs(fill = "Destination")
